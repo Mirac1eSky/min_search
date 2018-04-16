@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 client = Elasticsearch(hosts=["127.0.0.1"])
 from datetime import datetime
 import redis
+
 redis_cli = redis.StrictRedis(charset='UTF-8', decode_responses=True,unix_socket_path=None)
 # Create your views here.
 
@@ -40,13 +41,15 @@ class SearchView(View):
         key_words = request.GET.get("q","")
         redis_cli.zincrby("search_keyword_set",key_words)
         topn_search = redis_cli.zrevrangebyscore("search_keyword_set","+inf","-inf",start=0,num=5)
-        page = request.GET.get("q","2")
+        page = request.GET.get("p","0")
+
         try:
             page = int(page)
         except:
-            page = 1
+            page = 0
 
         start_time = datetime.now()
+
         response = client.search(
             index="lagou",
             body={
@@ -56,7 +59,7 @@ class SearchView(View):
                         "fields":["tags","title","content"]
                     }
                 },
-                "from":(page-1)*10,
+                "from":(page)*10,
                 "size":10,
                 "highlight":{
                     "pre_tags": ['<span class="keyWord">'],
