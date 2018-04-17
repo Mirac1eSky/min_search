@@ -59,6 +59,19 @@ class SearchView(View):
                         "fields":["tags","title","content"]
                     }
                 },
+                "rescore":{
+                  "window_size":10,
+                    "query":{
+                        
+                        "rescore_query":{
+                            "match_phrase":{
+                                  "title":{"query":key_words,
+                                           "slop":2
+                                           }
+                            }
+                        }
+                    }
+                },
                 "from":(page)*10,
                 "size":10,
                 "highlight":{
